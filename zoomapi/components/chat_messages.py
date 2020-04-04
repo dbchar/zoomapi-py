@@ -53,6 +53,20 @@ class ChatMessagesComponentV2(base.BaseComponent):
         https://marketplace.zoom.us/docs/api-reference/zoom-api/chat-messages/editmessage#request-body
 
         Use data=kwargs
+
+        Examples:
+
+        https://api.zoom.us/v2/chat/users/me/messages/{messageId}
+
+        body: {
+            "message": {some_message},
+            "to_channel": {some_channel_id}
+        }
+
+        body: {
+            "message": {some_message},
+            "to_contact": {some_contact_id}
+        }
         """
         util.require_keys(kwargs, "message_id")
         return self.put_request(
@@ -64,6 +78,12 @@ class ChatMessagesComponentV2(base.BaseComponent):
         https://marketplace.zoom.us/docs/api-reference/zoom-api/chat-messages/deletechatmessage#request-parameters
 
         Use params=kwargs
+
+        Examples:
+
+        https://api.zoom.us/v2/chat/users/me/messages/{message_id}?to_channel={some_channel_id}
+
+        https://api.zoom.us/v2/chat/users/me/messages/{message_id}?to_contact={some_contact_id}
         """
         util.require_keys(kwargs, "message_id")
         return self.delete_request(
