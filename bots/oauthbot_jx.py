@@ -41,32 +41,54 @@ if __name__ == "__main__":
     # go and create a channel named "test" in Zoom client
     channels = chat_channels_content["channels"]
 
-    target_channel_name = "test-jx"
-    print("# Channel info of user", user_email)
-    for channel in channels:
-        print("channel:", channel["id"], channel["name"])
-        if channel["name"] == target_channel_name:
-            test_channel_id = channel["id"]
+    while True:
+        i = 0
+        print("# Channel info of user", user_email)
+        for channel in channels:
+            print(f"[{i}] channel: {channel['id']} {channel['name']}")
+            i += 1
 
-    if test_channel_id != None:
         try:
-            test_channel_messages_content = json.loads(
-                client.chat_messages.list(
-                    user_id=user_id, to_channel=test_channel_id
-                ).content
-            )
-            print("# History of the channel", target_channel_name)
-            for msg in test_channel_messages_content["messages"]:
-                print(f"[{msg['date_time']}] {msg['sender']}: {msg['message']}")
-        except:
-            print(test_channel_messages_content)
+            i = int(input("Please select a channel: "))
+        except ValueError:
+            break
 
-        print("# You have entered the channel", target_channel_name)
-        while True:
-            message = input("Enter message ('q' to stop): ")
-            if message == "q":
-                break
-            response = client.chat_messages.post(
-                to_channel=test_channel_id, message=message
-            )
-            print(response)
+        channel_id_selected = channels[i]["id"]
+        channel_name_selected = channels[i]["name"]
+
+        if channel_id_selected != None:
+            while True:
+                print("# You have entered the channel", channel_name_selected)
+                print("[1] Print history;")
+                print("[2] Send messages;")
+
+                try:
+                    j = int(input("Please select a function: "))
+                except ValueError:
+                    break
+
+                if j == 1:
+                    try:
+                        test_channel_messages_content = json.loads(
+                            client.chat_messages.list(
+                                user_id=user_id, to_channel=channel_id_selected
+                            ).content
+                        )
+                        print("# History of the channel", channel_name_selected)
+                        for msg in test_channel_messages_content["messages"]:
+                            print(
+                                f"[{msg['date_time']}] {msg['sender']}: {msg['message']}"
+                            )
+                    except:
+                        print(test_channel_messages_content)
+                elif j == 2:
+                    while True:
+                        message = input("Enter message ('q' to stop): ")
+                        if message == "q":
+                            break
+                        response = client.chat_messages.post(
+                            to_channel=channel_id_selected, message=message
+                        )
+                        print(response)
+                else:
+                    break
