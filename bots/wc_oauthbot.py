@@ -123,23 +123,78 @@ def test_list_channel_members(client):
         print()
     print ("------------------------------")
 
+# TODO: - Bug to fix
+def test_invite_channel_members(client):
+    channel_id = "4c2ca1e2ed2a4fd68a61f766daeec019" # announcements
+    # You can invite up to a max number of 5 members with a single API call
+    # channel_members = [{"email": "wcyang1@uci.edu"}, {"email": "jeffbalala@gmail.com"}]
+    channel_members = [{"email": "jeffbalala@gmail.com"}]
+    invite_channel_members_response = client.chat_channels.invite_members(channel_id=channel_id, members=channel_members)
+    json_data = invite_channel_members_response.json()
+    print("json_data:", json_data)
+    # json_data: {'code': 5301, 'message': 'Invite Channel members failed.'}
+    ids = json_data["ids"]
+    print ("------------------------------")
+    print("Succeed to Invite Channel Members")
+    print(ids.split(','))
+    print ("------------------------------")
+
+# TODO: - Need to Login to Another Account to Test
+def test_join_channel(client):
+    channel_id = "4c2ca1e2ed2a4fd68a61f766daeec019" # announcements
+    join_channel_response = client.chat_channels.join_channel(channel_id=channel_id)
+    json_data = join_channel_response.json()
+    print ("------------------------------")
+    print("Succeed to Join a Channel")
+    print("id:", json_data["id"])
+    print("added_at:", json_data["added_at"])
+    print ("------------------------------")
+
+# TODO: - Need to Login to Another Account to Test
+def test_leave_channel(client):
+    channel_id = "4c2ca1e2ed2a4fd68a61f766daeec019" # announcements
+    leave_channel_response = client.chat_channels.leave_channel(channel_id=channel_id)
+    json_data = leave_channel_response.json()
+    print ("------------------------------")
+    print("Succeed to Leave a Channel")
+    print ("------------------------------")
+
+# TODO: - Need to Login to Another Account to Test
+def test_remove_member(client):
+    channel_id = "4c2ca1e2ed2a4fd68a61f766daeec019" # announcements
+    member_id = "mskdmfksmfkwemfklwem"
+    remove_member_response = client.chat_channels.remove_member(channel_id=channel_id, member_id=member_id)
+    json_data = remove_member_response.json()
+    print ("------------------------------")
+    print("Succeed to Remove a Member")
+    print ("------------------------------")
+
 def print_channel(json_data):
     print("channel id:", json_data["id"])
     print("channel jid:", json_data["jid"])
     print("channel name:", json_data["name"])
     print("channel type:", json_data["type"])
 
-def test_channel_endpoints():
+def test_channel_endpoints(client):
+    # Test Success
     # test_create_channel(client)
     # test_list_user_channels(client)
     # test_get_channel(client)
     # test_update_channel(client)
     # test_delete_channel(client)
-    test_list_channel_members(client)
+    # test_list_channel_members(client)
+
+    # Test Fail
+    test_invite_channel_members(client)
+
+    # Not test
+    # test_join_channel(client)
+    # test_leave_channel(client)
+    # test_remove_member(client)
 
 if __name__ == "__main__":
     client_id, client_secret, port, browser_path, redirect_url = load_bot_settings()
     client = OAuthZoomClient(client_id, client_secret, port, redirect_url, browser_path)
-    test_channel_endpoints()
+    test_channel_endpoints(client)
     # test_apis(client)
     
