@@ -15,6 +15,7 @@ from urllib.parse import urlparse, urlencode, quote
 import webbrowser
 import os
 
+
 class ApiClient(object):
     """Simple wrapper for REST API requests"""
 
@@ -259,45 +260,55 @@ def generate_jwt(key, secret):
     token = jwt.encode(payload, secret, algorithm="HS256", headers=header)
     return token.decode("utf-8")
 
+
 class TokenHandler(BaseHTTPRequestHandler):
     code = None
+
     def do_GET(self):
-        print("GET request to " + self.path)
+        # print("GET " + self.path)
         query = urlparse(self.path).query
         if len(query) > 0:
-            print("query is " + query)
+            # print("query: " + query)
             query_components = dict(qc.split("=") for qc in query.split("&"))
             TokenHandler.code = query_components["code"]
-            print("***" + TokenHandler.code + "***")
+            # print("***" + TokenHandler.code + "***")
         self.send_response(200)
         self.end_headers()
 
-def http_receiver(port):
+
+def start_http_receiver(port):
     with socketserver.TCPServer(("", port), TokenHandler) as httpd:
-        print("serving at port", port)
+        print(f"Start listening at localhost:{port}")
         while TokenHandler.code == None:
             httpd.handle_request()
-        print("End of http receiver")
+        print("Stop listening")
+
 
 def get_oauth_token(cid, client_secret, port, redirect_url, browser_path):
-
-    oauth = OAuth2Session(client_id = cid, redirect_uri = redirect_url)
+    oauth = OAuth2Session(client_id=cid, redirect_uri=redirect_url)
     authorization_url, state = oauth.authorization_url(
-        'https://zoom.us/oauth/authorize')
+        "https://zoom.us/oauth/authorize"
+    )
 
-    print ('Going to %s to authorize access.' % authorization_url)
-    if os.name == 'nt':
-        authorization_url = authorization_url.replace('&', '^&')
+    # print ('Going to %s to authorize access.' % authorization_url)
+    if os.name == "nt":
+        authorization_url = authorization_url.replace("&", "^&")
     else:
-        authorization_url = authorization_url.replace('&', '\&')
-    print(authorization_url)
+        authorization_url = authorization_url.replace("&", "\&")
+    # print(authorization_url)
+
+    # bring up the browser
     os.system(browser_path + " " + authorization_url)
 
-    http_receiver(port)
+    # start the receiver to get the code (TokenHandler.code)
+    # {10_char_code}_{user_id}
+    start_http_receiver(port)
 
+    # get oauth token
     token = oauth.fetch_token(
-        'https://zoom.us/oauth/token',
+        "https://zoom.us/oauth/token",
         code=TokenHandler.code,
-        client_secret=client_secret)
+        client_secret=client_secret,
+    )
     resp = dict(token)
     return resp["access_token"]
