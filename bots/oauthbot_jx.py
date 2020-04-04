@@ -12,83 +12,113 @@ from configparser import ConfigParser
 from pyngrok import ngrok
 
 
-if __name__ == "__main__":
-    parser = ConfigParser()
-    parser.read("bots/bot.ini")
-    client_id = parser.get("OAuth", "client_id")
-    client_secret = parser.get("OAuth", "client_secret")
-    port = parser.getint("OAuth", "port", fallback=4001)
-    browser_path = parser.get("OAuth", "browser_path")
-    redirect_url = ngrok.connect(port, "http")
-    client = OAuthZoomClient(client_id, client_secret, port, redirect_url, browser_path)
+class Bot:
+    def __init__(self):
+        parser = ConfigParser()
+        parser.read("bots/bot.ini")
 
-    user_content = json.loads(client.user.get(id="me").content)
-    user_id = user_content["id"]
-    user_email = user_content["email"]
+        client_id = parser.get("OAuth", "client_id")
+        client_secret = parser.get("OAuth", "client_secret")
+        port = parser.getint("OAuth", "port", fallback=4001)
+        browser_path = parser.get("OAuth", "browser_path")
+        redirect_url = ngrok.connect(port, "http")
 
-    print("# User info")
-    print("user_id =", user_id)
-    print("user_email =", user_email)
-    # print(f"user_content: {user_content}")
+        self.client = OAuthZoomClient(
+            client_id, client_secret, port, redirect_url, browser_path,
+        )
+        self.user = json.loads(self.client.user.get(id="me").content)
+        print("# User info")
+        print("user_id =", self.user["id"])
+        print("user_email =", self.user["email"])
 
-    # meeting_content = json.loads(client.meeting.list(user_id="me").content)
-    # print(f"meeting_content: {meeting_content}")
-
-    chat_channels_content = json.loads(client.chat_channels.list().content)
-    # print(f"chat_channels_content: {chat_channels_content}")
-
-    # must have at least one channel in advance
-    # go and create a channel named "test" in Zoom client
-    channels = chat_channels_content["channels"]
-
-    while True:
-        i = 0
-        print("# Channel info of user", user_email)
-        for channel in channels:
-            print(f"[{i}] channel: {channel['id']} {channel['name']}")
-            i += 1
-
+    def list_channel_messages(self):
         try:
-            i = int(input("Please select a channel: "))
-        except ValueError:
-            break
+            test_channel_messages_content = json.loads(
+                self.client.chat_messages.list(
+                    user_id=self.user["id"], to_channel=self.channel["id"]
+                ).content
+            )
+            print("# History of the channel", self.channel["name"])
+            for msg in test_channel_messages_content["messages"]:
+                print(
+                    f"[{msg['date_time']}] {msg['sender']}: {msg['message']} id={msg['id']}"
+                )
+        except:
+            print(test_channel_messages_content)
+        finally:
+            # self.client.refresh_token()
+            pass
 
-        channel_id_selected = channels[i]["id"]
-        channel_name_selected = channels[i]["name"]
+    def send_channel_messages(self):
+        while True:
+            message = input("Enter message ('q' to stop): ")
+            if message == "q":
+                break
+            response = self.client.chat_messages.post(
+                to_channel=self.channel["id"], message=message
+            )
+            print(response)
 
-        if channel_id_selected != None:
-            while True:
-                print("# You have entered the channel", channel_name_selected)
-                print("[1] Print history;")
-                print("[2] Send messages;")
+    def update_a_channel_message(self):
+        self.list_channel_messages()
+        message_id = input("Enter message id: ")
+        message_new = input("Enter new message content: ")
+        response = self.client.chat_messages.update(
+            message_id=message_id, message=message_new, to_channel=self.channel["id"],
+        )
+        print(response)
 
-                try:
-                    j = int(input("Please select a function: "))
-                except ValueError:
-                    break
+    def delete_a_channel_message(self):
+        self.list_channel_messages()
+        message_id = input("Enter message id: ")
+        response = self.client.chat_messages.delete(
+            message_id=message_id, to_channel=self.channel["id"],
+        )
+        print(response)
 
-                if j == 1:
+    def run(self):
+        # must have at least one channel in advance
+        # go and create a channel named "test" in Zoom client
+        chat_channels_content = json.loads(self.client.chat_channels.list().content)
+        channels = chat_channels_content["channels"]
+
+        while True:
+            i = 0
+            print("# Channel info of user", self.user["email"])
+            for channel in channels:
+                print(f"[{i}] channel: {channel['id']} {channel['name']}")
+                i += 1
+
+            try:
+                i = int(input("Please select a channel: "))
+            except ValueError:
+                break
+
+            self.channel = channels[i]
+            if self.channel["id"] != None:
+                while True:
+                    print("# You have entered the channel", self.channel["name"])
+                    print("[1] Print history;")
+                    print("[2] Send messages;")
+                    print("[3] Update a message;")
+                    print("[4] Delete a message;")
+
                     try:
-                        test_channel_messages_content = json.loads(
-                            client.chat_messages.list(
-                                user_id=user_id, to_channel=channel_id_selected
-                            ).content
-                        )
-                        print("# History of the channel", channel_name_selected)
-                        for msg in test_channel_messages_content["messages"]:
-                            print(
-                                f"[{msg['date_time']}] {msg['sender']}: {msg['message']}"
-                            )
-                    except:
-                        print(test_channel_messages_content)
-                elif j == 2:
-                    while True:
-                        message = input("Enter message ('q' to stop): ")
-                        if message == "q":
-                            break
-                        response = client.chat_messages.post(
-                            to_channel=channel_id_selected, message=message
-                        )
-                        print(response)
-                else:
-                    break
+                        j = int(input("Please select a function: "))
+                    except ValueError:
+                        break
+
+                    if j == 1:
+                        self.list_channel_messages()
+                    elif j == 2:
+                        self.send_channel_messages()
+                    elif j == 3:
+                        self.update_a_channel_message()
+                    elif j == 4:
+                        self.delete_a_channel_message()
+                    else:
+                        break
+
+
+if __name__ == "__main__":
+    Bot().run()
