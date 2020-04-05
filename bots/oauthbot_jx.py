@@ -76,25 +76,44 @@ class Bot:
         )
         print(response)
 
+    def list_channels(self):
+        i = 0
+        print("# Channel info of user", self.user["email"])
+        for channel in self.channels:
+            print(f"[{i}] channel: {channel['id']} {channel['name']}")
+            i += 1
+
+    def list_external_contacts(self):
+        res = self.client.get_request(
+            "/chat/users/me/contacts", params={"type": "external"}
+        )
+        contacts = json.loads(res.content)["contacts"]
+        print("# User's external contacts")
+        for contact in contacts:
+            print(f"{contact['id']} {contact['email']}")
+
+    def invite_channel_members(self):
+        self.list_external_contacts()
+        email = input("Please input a user email: ")
+        res = self.client.chat_channels.invite_members(
+            channel_id=self.channel["id"], members=[{"email": email}]
+        )
+        print(res)
+
     def run(self):
         # must have at least one channel in advance
         # go and create a channel named "test" in Zoom client
-        chat_channels_content = json.loads(self.client.chat_channels.list().content)
-        channels = chat_channels_content["channels"]
+        self.channels = json.loads(self.client.chat_channels.list().content)["channels"]
 
         while True:
-            i = 0
-            print("# Channel info of user", self.user["email"])
-            for channel in channels:
-                print(f"[{i}] channel: {channel['id']} {channel['name']}")
-                i += 1
+            self.list_channels()
 
             try:
                 i = int(input("Please select a channel: "))
             except ValueError:
                 break
 
-            self.channel = channels[i]
+            self.channel = self.channels[i]
             if self.channel["id"] != None:
                 while True:
                     print("# You have entered the channel", self.channel["name"])
@@ -102,6 +121,7 @@ class Bot:
                     print("[2] Send messages;")
                     print("[3] Update a message;")
                     print("[4] Delete a message;")
+                    print("[5] Invite a member;")
 
                     try:
                         j = int(input("Please select a function: "))
@@ -116,6 +136,8 @@ class Bot:
                         self.update_a_channel_message()
                     elif j == 4:
                         self.delete_a_channel_message()
+                    elif j == 5:
+                        self.invite_channel_members()
                     else:
                         break
 
