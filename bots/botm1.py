@@ -58,7 +58,7 @@ class Bot:
 
     def get_valid_user_input_email(self):
         user_input = None
-        while user_input is None or not is_valid_email(user_input):
+        while user_input is None or not self.is_valid_email(user_input):
             user_input = input("Please input a email(ex. test@gmail.com): ")
         return user_input
 
@@ -68,6 +68,33 @@ class Bot:
             print("Email format is invalid")
             return False
         return True
+
+    def get_valid_user_input_email_list(self):
+        max_email_number = 5
+        print(
+            "You can enter at most"
+            + max_email_number
+            + " email addresses ('q' to quit)"
+        )
+
+        email_list = []
+
+        while len(email_list) < max_email_number:
+            user_input = input(
+                "Enter email "
+                + str(len(email_list) + 1)
+                + "('q' to quit or 'Enter' to continue): "
+            )
+            if user_input.lower() == "q":
+                break
+            elif len(user_input) == 0:
+                email = self.get_valid_user_input_email()
+                email_list.append(email)
+            else:
+                print("user_input:", user_input)
+                print("Please input 'q' to quit or 't' to continue\n")
+
+        return email_list
 
     def is_valid_response(self, response):
         if response.status_code > 299:
@@ -406,7 +433,6 @@ class Bot:
 
     def list_channels(self):
         self.print_title("List channels")
-        # TODO(Urgent): - Need to add recursive list all channels if count is over 10
         response = self.client.chat_channels.list()
         if self.is_valid_response(response):
             self.print_channels_with_title(
@@ -419,9 +445,11 @@ class Bot:
     def create_a_channel(self):
         self.print_title("Create a channel")
         channel_name = self.get_user_input("Please input a channel name(ex. test): ")
-        # TODO: - Add multiple email support or empty email support
-        email = self.get_valid_user_input_email()
-        channel_members = [{"email": email}]
+        email_list = self.get_valid_user_input_email_list()
+        channel_members = []
+        for email in email_list:
+            channel_member = {"email": email}
+            channel_members.append(channel_member)
         response = self.client.chat_channels.create(
             name=channel_name, type=1, members=channel_members
         )
@@ -502,12 +530,11 @@ class Bot:
         channel_id = self.get_user_input(
             "Please input a channel id(ex. 45dcf4e6-3ad5-433c-8081-764c1866c46a): "
         )
-        # You can invite up to a max number of 5 members with a single API call
-        # channel_members = [{"email": "wcyang1@uci.edu"}, {"email": "jeffbalala@gmail.com"}]
-        # TODO: - Add multiple email support or empty email support
-        # TODO: - Add multiple api call if emails are over 5
-        email = self.get_valid_user_input_email()
-        channel_members = [{"email": email}]
+        email_list = self.get_valid_user_input_email_list()
+        channel_members = []
+        for email in email_list:
+            channel_member = {"email": email}
+            channel_members.append(channel_member)
         response = self.client.chat_channels.invite_members(
             channel_id=channel_id, members=channel_members
         )
