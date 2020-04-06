@@ -10,6 +10,7 @@ from zoomapi import OAuthZoomClient
 import json
 from configparser import ConfigParser
 from pyngrok import ngrok
+import time
 
 
 class Bot:
@@ -101,7 +102,7 @@ class Bot:
 
     def print_join_a_channel_result_with_title(self, title, json_data):
         added_at = json_data["added_at"]
-        ids = json_data["id"]
+        id = json_data["id"]
         print("------------------------------")
         print("# " + title + " at " + added_at)
         print("Id: " + id)
@@ -110,6 +111,7 @@ class Bot:
     """Menu"""
 
     def print_main_menu(self):
+        print("# Main Menu #")
         print("[1] Execute a set of Chat Channel Functions;")
         print("[2] Execute a single Chat Channel Function;")
         print("[3] Execute a set of Chat Message Functions;")
@@ -179,7 +181,7 @@ class Bot:
             elif command == 6:
                 self.list_channel_members()
             elif command == 7:
-                self.invite_channel_members_2()
+                self.invite_channel_members()
             elif command == 8:
                 self.join_a_channel()
             elif command == 9:
@@ -190,13 +192,65 @@ class Bot:
                 pass
 
     def execute_set_of_chat_message_functions(self):
-        print("Execute a set of Chat Message Functions\n")
+        print("# Executing a set of Chat Message Functions...")
+
+        # 0
+        self.list_channels()
+        try:
+            i = int(input("First, please select a channel:\n"))
+        except ValueError:
+            print(f"{i} is not a number.")
+            return
+        self.channel = self.channels[i % len(self.channels)]
+        print("You have selected channel", self.channel["name"])
+
+        # 1
+        input("# Part 1: Test sending messages (Press Enter to continue)")
+        msg = input("Then, please send a message to the channel:\n")
+        response = self.client.chat_messages.post(
+            to_channel=self.channel["id"], message=msg
+        )
+        print("The response is", response)
+        if response.status_code > 299:  # OK status codes start with 2
+            print("Something goes wrong. Please retry.")
+            return
+        mid = response.json()["id"]
+
+        # 2
+        input("# Part 2: Test listing messages (Press Enter to continue)")
+        print("Then please review the message history.")
+        self.list_channel_messages()
+        print(f'Did you see "{msg}" there? Great.')
+
+        # 3
+        input("# Part 3: Test updating messages (Press Enter to continue)")
+        print(f'Then we are going to update "{msg}".')
+        msg = input("Please input a new message:\n")
+        response = self.client.chat_messages.update(
+            message_id=mid, message=msg, to_channel=self.channel["id"],
+        )
+        print("The response is", response)
+        if response.status_code > 299:  # OK status codes start with 2
+            print("Something goes wrong. Please retry.")
+            return
+        time.sleep(1)
+        self.list_channel_messages()
+        print(f'Did you see "{msg}" there? Great.')
+
+        # 4
+        input("# Part 4: Test removing messages (Press Enter to continue)")
+        print(f'Then we are going to delete "{msg}".')
+        response = self.client.chat_messages.delete(
+            message_id=mid, to_channel=self.channel["id"],
+        )
+        print("The response is", response)
+        time.sleep(1)
+        self.list_channel_messages()
+        print(f'Did you see "{msg}" gone? Great.')
+
+        print("# Execution finished.")
 
     def execute_single_chat_message_function(self):
-        # must have at least one channel in advance
-        # go and create a channel named "test" in Zoom client
-        self.channels = json.loads(self.client.chat_channels.list().content)["channels"]
-
         while True:
             self.list_channels()
 
@@ -208,12 +262,11 @@ class Bot:
             self.channel = self.channels[i]
             if self.channel["id"] != None:
                 while True:
-                    print("# You have entered the channel", self.channel["name"])
-                    print("[1] Print history;")
+                    print("# Chat Message Menu #", self.channel["name"])
+                    print("[1] Print message history;")
                     print("[2] Send messages;")
                     print("[3] Update a message;")
                     print("[4] Delete a message;")
-                    print("[5] Invite a member;")
 
                     try:
                         j = int(input("Please select a function: "))
@@ -228,8 +281,6 @@ class Bot:
                         self.update_a_channel_message()
                     elif j == 4:
                         self.delete_a_channel_message()
-                    elif j == 5:
-                        self.invite_channel_members()
                     else:
                         break
 
@@ -382,8 +433,10 @@ class Bot:
         else:
             return
 
-    def invite_channel_members_2(self):
+    def invite_channel_members(self):
         self.print_title("Invite channel members")
+        self.list_external_contacts()
+
         channel_id = self.get_user_input(
             "Please input a channel id(ex. 45dcf4e6-3ad5-433c-8081-764c1866c46a): "
         )
@@ -411,7 +464,7 @@ class Bot:
         channel_id = self.get_user_input(
             "Please input a channel id(ex. 45dcf4e6-3ad5-433c-8081-764c1866c46a): "
         )
-        response = self.client.chat_channels.join_channel(channel_id=channel_id)
+        response = self.client.chat_channels.join(channel_id=channel_id)
 
         if self.is_valid_response(response):
             self.print_join_a_channel_result_with_title(
@@ -426,7 +479,7 @@ class Bot:
         channel_id = self.get_user_input(
             "Please input a channel id(ex. 45dcf4e6-3ad5-433c-8081-764c1866c46a): "
         )
-        response = self.client.chat_channels.leave_channel(channel_id=channel_id)
+        response = self.client.chat_channels.leave(channel_id=channel_id)
 
         if self.is_valid_response(response):
             self.print_title("Succeed to leave a channel")
@@ -442,7 +495,7 @@ class Bot:
         member_id = self.get_user_input(
             "Please input a member id(ex. p1d-2aj2rx2mbohcae8tpw): "
         )
-        response = client.chat_channels.remove_member(
+        response = self.client.chat_channels.remove_member(
             channel_id=channel_id, member_id=member_id
         )
 
@@ -461,16 +514,6 @@ class Bot:
         print("# User's external contacts")
         for contact in contacts:
             print(f"{contact['id']} {contact['email']}")
-
-    def invite_channel_members(self):
-        self.list_external_contacts()
-        email = input("Please input a user email: ")
-        res = self.client.chat_channels.invite_members(
-            channel_id=self.channel["id"], members=[{"email": email}]
-        )
-        print(res)
-        print(res.json())
-
 
 if __name__ == "__main__":
     Bot().run()
