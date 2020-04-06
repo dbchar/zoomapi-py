@@ -72,8 +72,8 @@ class Bot:
     def get_valid_user_input_email_list(self):
         max_email_number = 5
         print(
-            "You can enter at most"
-            + max_email_number
+            "You can enter at most "
+            + str(max_email_number)
             + " email addresses ('q' to quit)"
         )
 
@@ -98,7 +98,7 @@ class Bot:
 
     def is_valid_response(self, response):
         if response.status_code > 299:
-            print("Something goes wrong. Please retry.")
+            print("Something goes wrong. Please retry.\n")
             return False
         return True
 
@@ -153,10 +153,10 @@ class Bot:
 
     def print_main_menu(self):
         print("# Main Menu #")
-        print("[1] Execute a set of Chat Channel Functions;")
-        print("[2] Execute a single Chat Channel Function;")
-        print("[3] Execute a set of Chat Message Functions;")
-        print("[4] Execute a single Chat Message Function;")
+        print("[1] Execute a MEANINGFUL set of Chat Channel Functions;")
+        print("[2] Execute a single Chat Channel Function (debug only);")
+        print("[3] Execute a MEANINGFUL set of Chat Message Functions;")
+        print("[4] Execute a single Chat Message Function (debug only);")
         print("[0] Quit;")
 
     def print_chat_channel_menu(self):
@@ -224,7 +224,7 @@ class Bot:
 
         # 3
         input("# Part 3: Test getting a channel (Press Enter to continue)")
-        self.get_a_channel(channel_id=cid)
+        self.get_a_channel_by_id(channel_id=cid)
 
         # 4
         input("# Part 4: Test updating a channel (Press Enter to continue)")
@@ -233,11 +233,11 @@ class Bot:
         if not self.is_valid_response(res):
             return
         time.sleep(1)
-        self.get_a_channel(channel_id=cid)
+        self.get_a_channel_by_id(channel_id=cid)
 
         # 5
         input("# Part 5: Test listing members of a channel (Press Enter to continue)")
-        self.list_channel_members(cid)
+        self.list_channel_members_by_id(cid)
 
         # 6
         input("# Part 6: Test inviting a member to a channel (Press Enter to continue)")
@@ -247,19 +247,19 @@ class Bot:
             channel_id=cid, members=[{"email": email}]
         )
         time.sleep(1)
-        self.list_channel_members(cid)
+        self.list_channel_members_by_id(cid)
 
         # 7
         input(
             "# Part 7: Test removing a member from a channel (Press Enter to continue)"
         )
-        self.list_channel_members(cid)
+        self.list_channel_members_by_id(cid)
         time.sleep(1)
         self.list_external_contacts()
         mid = self.get_user_input("Please input a member id (not email): ")
         self.client.chat_channels.remove_member(channel_id=cid, member_id=mid)
         time.sleep(1)
-        self.list_channel_members(cid)
+        self.list_channel_members_by_id(cid)
 
         # 8
         input("# Part 8: Test deleting a channel (Press Enter to continue)")
@@ -461,6 +461,7 @@ class Bot:
         self.print_title("List channels")
         response = self.client.chat_channels.list()
         if self.is_valid_response(response):
+            self.channels = response.json()["channels"]
             self.print_channels_with_title(
                 "Succeed to list all channels", response.json()
             )
@@ -501,7 +502,7 @@ class Bot:
         else:
             return
 
-    def get_a_channel(self, channel_id):
+    def get_a_channel_by_id(self, channel_id):
         self.print_title("Get a channel")
         response = self.client.chat_channels.get(channel_id=channel_id)
         if self.is_valid_response(response):
@@ -556,7 +557,7 @@ class Bot:
         else:
             return
 
-    def list_channel_members(self, channel_id):
+    def list_channel_members_by_id(self, channel_id):
         self.print_title("List channel members")
         response = self.client.chat_channels.list_members(channel_id=channel_id)
 
@@ -637,11 +638,8 @@ class Bot:
             return
 
     def list_external_contacts(self):
-        # TODO: - Create a contact component
-        res = self.client.get_request(
-            "/chat/users/me/contacts", params={"type": "external"}
-        )
-        contacts = json.loads(res.content)["contacts"]
+        res = self.client.contacts.list_external()
+        contacts = res.json()["contacts"]
         print("# User's external contacts")
         for contact in contacts:
             print(f"{contact['id']} {contact['email']}")

@@ -46,6 +46,7 @@ class OAuthZoomClient(ZoomClient):
         self.components[
             "chat_messages"
         ] = components.chat_messages.ChatMessagesComponentV2
+        self.components["contacts"] = components.contacts.ContactsComponentV2
 
         # Instantiate the components
         for key in self.components.keys():
@@ -80,5 +81,10 @@ class OAuthZoomClient(ZoomClient):
 
     @property
     def chat_channels(self) -> components.chat_channels.ChatChannelsComponentV2:
-        """Get the chat messages component"""
+        """Get the chat channel component"""
         return self.components.get("chat_channels")
+
+    @property
+    def contacts(self) -> components.contacts.ContactsComponentV2:
+        """Get the contacts component"""
+        return self.components.get("contacts")

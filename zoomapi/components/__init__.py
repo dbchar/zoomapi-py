@@ -2,4 +2,13 @@
 
 from __future__ import absolute_import
 
-from . import meeting, recording, report, user, webinar, chat_messages, chat_channels
+from . import (
+    meeting,
+    recording,
+    report,
+    user,
+    webinar,
+    chat_messages,
+    chat_channels,
+    contacts,
+)
