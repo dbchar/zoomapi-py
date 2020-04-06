@@ -14,22 +14,23 @@ from pyngrok import ngrok
 
 class Bot:
     def __init__(self):
-        parser = ConfigParser()
-        parser.read("bots/bot.ini")
+        print('__init__')
+        # parser = ConfigParser()
+        # parser.read("bots/bot.ini")
 
-        client_id = parser.get("OAuth", "client_id")
-        client_secret = parser.get("OAuth", "client_secret")
-        port = parser.getint("OAuth", "port", fallback=4001)
-        browser_path = parser.get("OAuth", "browser_path")
-        redirect_url = ngrok.connect(port, "http")
+        # client_id = parser.get("OAuth", "client_id")
+        # client_secret = parser.get("OAuth", "client_secret")
+        # port = parser.getint("OAuth", "port", fallback=4001)
+        # browser_path = parser.get("OAuth", "browser_path")
+        # redirect_url = ngrok.connect(port, "http")
 
-        self.client = OAuthZoomClient(
-            client_id, client_secret, port, redirect_url, browser_path,
-        )
-        self.user = json.loads(self.client.user.get(id="me").content)
-        print("# User info")
-        print("user_id =", self.user["id"])
-        print("user_email =", self.user["email"])
+        # self.client = OAuthZoomClient(
+        #     client_id, client_secret, port, redirect_url, browser_path,
+        # )
+        # self.user = json.loads(self.client.user.get(id="me").content)
+        # print("# User info")
+        # print("user_id =", self.user["id"])
+        # print("user_email =", self.user["email"])
 
     """
     chat massage functions
@@ -107,9 +108,55 @@ class Bot:
             channel_id=self.channel["id"], members=[{"email": email}]
         )
         print(res)
-        print(res.json())
+        print(res.json())    
+
+    """
+    Function Menu
+    """
 
     def run(self):
+        command = -1
+
+        while command != 0:
+            self.print_main_menu()
+            command = self.get_user_command()
+            
+            if command == 1:
+                self.execute_set_of_chat_channel_functions()
+            elif command == 2:
+                self.execute_single_chat_channel_function()
+            elif command == 3:
+                self.execute_set_of_chat_message_functions()
+            elif command == 4:
+                self.execute_single_chat_message_function()
+            else:
+                break
+
+    def print_main_menu(self):
+        print("[1] Execute a set of Chat Channel Functions;")
+        print("[2] Execute a single Chat Channel Function;")
+        print("[3] Execute a set of Chat Message Functions;")
+        print("[4] Execute a single Chat Message Function;")
+        print("[0] Quit;")
+
+    def get_user_command(self):
+        try:
+            command = int(input("Please select a command(ex. 1): "))
+            return command
+        except ValueError:
+            print("Invalid command, please enter a correct command!")
+            return -1
+
+    def execute_set_of_chat_channel_functions(self):
+        print("Execute a set of Chat Channel Functions\n")
+
+    def execute_single_chat_channel_function(self):
+        print("Execute a single Chat Channel Function\n")
+
+    def execute_set_of_chat_message_functions(self):
+        print("Execute a set of Chat Message Functions\n")
+
+    def execute_single_chat_message_function(self):
         # must have at least one channel in advance
         # go and create a channel named "test" in Zoom client
         self.channels = json.loads(self.client.chat_channels.list().content)["channels"]
@@ -149,7 +196,6 @@ class Bot:
                         self.invite_channel_members()
                     else:
                         break
-
 
 if __name__ == "__main__":
     Bot().run()
