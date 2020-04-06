@@ -119,6 +119,7 @@ class Bot:
         print("[0] Quit;")
 
     def print_chat_channel_menu(self):
+        print("# Chat Channel Menu #", self.user["email"])
         print("[1] List user's channels;")
         print("[2] Create a channel;")
         print("[3] Get a channel;")
@@ -129,6 +130,14 @@ class Bot:
         print("[8] Join a channel;")
         print("[9] Leave a channel;")
         print("[10] Remove a member;")
+        print("[0] Quit;")
+
+    def print_chat_message_menu(self):
+        print("# Chat Message Menu #", self.channel["name"])
+        print("[1] List channel messages;")
+        print("[2] Send channel messages;")
+        print("[3] Update a message;")
+        print("[4] Delete a message;")
         print("[0] Quit;")
 
     """Bot implementations"""
@@ -158,7 +167,57 @@ class Bot:
                 pass
 
     def execute_set_of_chat_channel_functions(self):
-        print("Execute a set of Chat Channel Functions\n")
+        print("# Executing a set of Chat Channel Functions...")
+
+        # 1
+        input("# Part 1: Test listing channels (Press Enter to continue)")
+        self.list_channels()
+
+        # 2
+        input("# Part 2: Test creating a channel (Press Enter to continue)")
+        self.create_a_channel()
+
+        # 3
+        input("# Part 3: Test getting a channel (Press Enter to continue)")
+        self.get_a_channel()
+        self.list_channels()
+
+        # 4
+        input("# Part 4: Test updating a channel (Press Enter to continue)")
+        self.update_a_channel()
+        self.list_channels()
+
+        # 5
+        input("# Part 5: Test listing members of a channel (Press Enter to continue)")
+        self.list_channel_members()
+
+        # 6
+        input("# Part 6: Test inviting a member to a channel (Press Enter to continue)")
+        self.invite_channel_members()
+        self.list_channel_members()
+
+        # 7
+        input(
+            "# Part 7: Test removing a member from a channel (Press Enter to continue)"
+        )
+        self.remove_a_channel_member()
+        self.list_channel_members()
+
+        # 8
+        input("# Part 8: Test deleting a channel (Press Enter to continue)")
+        self.list_channels()
+        self.delete_a_channel()
+        self.list_channels()
+
+        # 9
+        input("# Part 9: Test joining a channel (Press Enter to continue)")
+        self.join_a_channel()
+        self.list_channels()
+
+        # 10
+        input("# Part 10: Test leaving a channel (Press Enter to continue)")
+        self.leave_a_channel()
+        self.list_channels()
 
     def execute_single_chat_channel_function(self):
         command = -1
@@ -253,36 +312,26 @@ class Bot:
     def execute_single_chat_message_function(self):
         while True:
             self.list_channels()
-
             try:
                 i = int(input("Please select a channel: "))
             except ValueError:
                 break
-
             self.channel = self.channels[i]
             if self.channel["id"] != None:
-                while True:
-                    print("# Chat Message Menu #", self.channel["name"])
-                    print("[1] Print message history;")
-                    print("[2] Send messages;")
-                    print("[3] Update a message;")
-                    print("[4] Delete a message;")
-
-                    try:
-                        j = int(input("Please select a function: "))
-                    except ValueError:
-                        break
-
-                    if j == 1:
+                command = -1
+                while command != 0:
+                    self.print_chat_message_menu()
+                    command = self.get_user_command()
+                    if command == 1:
                         self.list_channel_messages()
-                    elif j == 2:
+                    elif command == 2:
                         self.send_channel_messages()
-                    elif j == 3:
+                    elif command == 3:
                         self.update_a_channel_message()
-                    elif j == 4:
+                    elif command == 4:
                         self.delete_a_channel_message()
                     else:
-                        break
+                        pass
 
     """User function"""
 
@@ -514,6 +563,7 @@ class Bot:
         print("# User's external contacts")
         for contact in contacts:
             print(f"{contact['id']} {contact['email']}")
+
 
 if __name__ == "__main__":
     Bot().run()
