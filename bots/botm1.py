@@ -10,27 +10,27 @@ from zoomapi import OAuthZoomClient
 import json
 from configparser import ConfigParser
 from pyngrok import ngrok
+import time
 
 
 class Bot:
     def __init__(self):
-        print('__init__')
-        # parser = ConfigParser()
-        # parser.read("bots/bot.ini")
+        parser = ConfigParser()
+        parser.read("bots/bot.ini")
 
-        # client_id = parser.get("OAuth", "client_id")
-        # client_secret = parser.get("OAuth", "client_secret")
-        # port = parser.getint("OAuth", "port", fallback=4001)
-        # browser_path = parser.get("OAuth", "browser_path")
-        # redirect_url = ngrok.connect(port, "http")
+        client_id = parser.get("OAuth", "client_id")
+        client_secret = parser.get("OAuth", "client_secret")
+        port = parser.getint("OAuth", "port", fallback=4001)
+        browser_path = parser.get("OAuth", "browser_path")
+        redirect_url = ngrok.connect(port, "http")
 
-        # self.client = OAuthZoomClient(
-        #     client_id, client_secret, port, redirect_url, browser_path,
-        # )
-        # self.user = json.loads(self.client.user.get(id="me").content)
-        # print("# User info")
-        # print("user_id =", self.user["id"])
-        # print("user_email =", self.user["email"])
+        self.client = OAuthZoomClient(
+            client_id, client_secret, port, redirect_url, browser_path,
+        )
+        self.user = json.loads(self.client.user.get(id="me").content)
+        print("# User info")
+        print("user_id =", self.user["id"])
+        print("user_email =", self.user["email"])
 
     """
     chat massage functions
@@ -112,7 +112,7 @@ class Bot:
             channel_id=self.channel["id"], members=[{"email": email}]
         )
         print(res)
-        print(res.json())    
+        print(res.json())
 
     """
     Function Menu
@@ -124,7 +124,7 @@ class Bot:
         while command != 0:
             self.print_main_menu()
             command = self.get_user_command()
-            
+
             if command == 1:
                 self.execute_set_of_chat_channel_functions()
             elif command == 2:
@@ -137,6 +137,7 @@ class Bot:
                 break
 
     def print_main_menu(self):
+        print("# Main Menu #")
         print("[1] Execute a set of Chat Channel Functions;")
         print("[2] Execute a single Chat Channel Function;")
         print("[3] Execute a set of Chat Message Functions;")
@@ -158,13 +159,65 @@ class Bot:
         print("Execute a single Chat Channel Function\n")
 
     def execute_set_of_chat_message_functions(self):
-        print("Execute a set of Chat Message Functions\n")
+        print("# Executing a set of Chat Message Functions...")
+
+        # 0
+        self.list_channels()
+        try:
+            i = int(input("First, please select a channel:\n"))
+        except ValueError:
+            print(f"{i} is not a number.")
+            return
+        self.channel = self.channels[i % len(self.channels)]
+        print("You have selected channel", self.channel["name"])
+
+        # 1
+        input("# Part 1: Test sending messages (Press Enter to continue)")
+        msg = input("Then, please send a message to the channel:\n")
+        response = self.client.chat_messages.post(
+            to_channel=self.channel["id"], message=msg
+        )
+        print("The response is", response)
+        if response.status_code > 299:  # OK status codes start with 2
+            print("Something goes wrong. Please retry.")
+            return
+        mid = response.json()["id"]
+
+        # 2
+        input("# Part 2: Test listing messages (Press Enter to continue)")
+        print("Then please review the message history.")
+        self.list_channel_messages()
+        print(f'Did you see "{msg}" there? Great.')
+
+        # 3
+        input("# Part 3: Test updating messages (Press Enter to continue)")
+        print(f'Then we are going to update "{msg}".')
+        msg = input("Please input a new message:\n")
+        response = self.client.chat_messages.update(
+            message_id=mid, message=msg, to_channel=self.channel["id"],
+        )
+        print("The response is", response)
+        if response.status_code > 299:  # OK status codes start with 2
+            print("Something goes wrong. Please retry.")
+            return
+        time.sleep(1)
+        self.list_channel_messages()
+        print(f'Did you see "{msg}" there? Great.')
+
+        # 4
+        input("# Part 4: Test removing messages (Press Enter to continue)")
+        print(f'Then we are going to delete "{msg}".')
+        response = self.client.chat_messages.delete(
+            message_id=mid, to_channel=self.channel["id"],
+        )
+        print("The response is", response)
+        time.sleep(1)
+        self.list_channel_messages()
+        print(f'Did you see "{msg}" gone? Great.')
+
+        print("# Execution finished.")
 
     def execute_single_chat_message_function(self):
-        # must have at least one channel in advance
-        # go and create a channel named "test" in Zoom client
-        self.channels = json.loads(self.client.chat_channels.list().content)["channels"]
-
         while True:
             self.list_channels()
 
@@ -176,12 +229,11 @@ class Bot:
             self.channel = self.channels[i]
             if self.channel["id"] != None:
                 while True:
-                    print("# You have entered the channel", self.channel["name"])
-                    print("[1] Print history;")
+                    print("# Chat Message Menu #", self.channel["name"])
+                    print("[1] Print message history;")
                     print("[2] Send messages;")
                     print("[3] Update a message;")
                     print("[4] Delete a message;")
-                    print("[5] Invite a member;")
 
                     try:
                         j = int(input("Please select a function: "))
@@ -196,10 +248,9 @@ class Bot:
                         self.update_a_channel_message()
                     elif j == 4:
                         self.delete_a_channel_message()
-                    elif j == 5:
-                        self.invite_channel_members()
                     else:
                         break
+
 
 if __name__ == "__main__":
     Bot().run()
