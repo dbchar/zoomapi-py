@@ -85,6 +85,10 @@ class Bot:
     """
 
     def list_channels(self):
+        # must have at least one channel in advance
+        # go and create a channel named "test" in Zoom client
+        self.channels = json.loads(self.client.chat_channels.list().content)["channels"]
+
         i = 0
         print("# Channel info of user", self.user["email"])
         for channel in self.channels:
@@ -110,10 +114,6 @@ class Bot:
         print(res.json())
 
     def run(self):
-        # must have at least one channel in advance
-        # go and create a channel named "test" in Zoom client
-        self.channels = json.loads(self.client.chat_channels.list().content)["channels"]
-
         while True:
             self.list_channels()
 
