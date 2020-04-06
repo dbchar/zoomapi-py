@@ -11,6 +11,7 @@ import json
 from configparser import ConfigParser
 from pyngrok import ngrok
 import time
+import re
 
 
 class Bot:
@@ -54,6 +55,19 @@ class Bot:
         while user_input is None:
             user_input = input(placeholder)
         return user_input
+
+    def get_valid_user_input_email(self):
+        user_input = None
+        while user_input is None or not is_valid_email(user_input):
+            user_input = input("Please input a email(ex. test@gmail.com): ")
+        return user_input
+
+    def is_valid_email(self, email):
+        regex = "^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"
+        if not re.search(regex, email):
+            print("Email format is invalid")
+            return False
+        return True
 
     def is_valid_response(self, response):
         if response.status_code > 299:
@@ -405,9 +419,8 @@ class Bot:
     def create_a_channel(self):
         self.print_title("Create a channel")
         channel_name = self.get_user_input("Please input a channel name(ex. test): ")
-        # TODO: - Check email formats
         # TODO: - Add multiple email support or empty email support
-        email = self.get_user_input("Please input a email(ex. test@gmail.com): ")
+        email = self.get_valid_user_input_email()
         channel_members = [{"email": email}]
         response = self.client.chat_channels.create(
             name=channel_name, type=1, members=channel_members
@@ -491,10 +504,9 @@ class Bot:
         )
         # You can invite up to a max number of 5 members with a single API call
         # channel_members = [{"email": "wcyang1@uci.edu"}, {"email": "jeffbalala@gmail.com"}]
-        # TODO: - Check email formats
         # TODO: - Add multiple email support or empty email support
         # TODO: - Add multiple api call if emails are over 5
-        email = self.get_user_input("Please input a email(ex. test@gmail.com): ")
+        email = self.get_valid_user_input_email()
         channel_members = [{"email": email}]
         response = self.client.chat_channels.invite_members(
             channel_id=channel_id, members=channel_members
