@@ -48,7 +48,8 @@ class ChatChannelsComponentV2(base.BaseComponent):
     def list_members(self, **kwargs):
         util.require_keys(kwargs, "channel_id")
         return self.get_request(
-            "/chat/channels/{}/members".format(kwargs.get("channel_id")), params=kwargs
+            "/chat/channels/{}/members?page_size=100".format(kwargs.get("channel_id")),
+            params=kwargs,
         )
 
     @Throttled
