@@ -99,7 +99,6 @@ class Bot:
             channel_id=self.channel["id"], members=[{"email": email}]
         )
         print(res)
-        print(res.json())
 
     def run(self):
         # must have at least one channel in advance

@@ -14,14 +14,13 @@ COMPONENT_CLASSES = {
     "recording": components.recording.RecordingComponentV2,
 }
 
+
 class ZoomClient(util.ApiClient):
     """Zoom.us REST API Python Client"""
 
     """Base URL for Zoom API"""
 
-    def __init__(
-        self, api_key, api_secret, data_type="json", timeout=15
-    ):
+    def __init__(self, api_key, api_secret, data_type="json", timeout=15):
         """Create a new Zoom client
 
         :param api_key: The Zooom.us API key
@@ -51,7 +50,7 @@ class ZoomClient(util.ApiClient):
         pass
 
     @property
-    def api_key(self):
+    def api_key(self) -> str:
         """The Zoom.us api_key"""
         return self.config.get("api_key")
 
@@ -62,7 +61,7 @@ class ZoomClient(util.ApiClient):
         self.refresh_token()
 
     @property
-    def api_secret(self):
+    def api_secret(self) -> str:
         """The Zoom.us api_secret"""
         return self.config.get("api_secret")
 
@@ -73,26 +72,26 @@ class ZoomClient(util.ApiClient):
         self.refresh_token()
 
     @property
-    def meeting(self):
+    def meeting(self) -> components.meeting.MeetingComponentV2:
         """Get the meeting component"""
         return self.components.get("meeting")
 
     @property
-    def report(self):
+    def report(self) -> components.report.ReportComponentV2:
         """Get the report component"""
         return self.components.get("report")
 
     @property
-    def user(self):
+    def user(self) -> components.user.UserComponentV2:
         """Get the user component"""
         return self.components.get("user")
 
     @property
-    def webinar(self):
+    def webinar(self) -> components.webinar.WebinarComponentV2:
         """Get the webinar component"""
         return self.components.get("webinar")
 
     @property
-    def recording(self):
+    def recording(self) -> components.recording.RecordingComponentV2:
         """Get the recording component"""
         return self.components.get("recording")
