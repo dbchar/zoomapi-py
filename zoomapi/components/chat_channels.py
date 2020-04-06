@@ -11,6 +11,11 @@ class ChatChannelsComponentV2(base.BaseComponent):
         return self.get_request("/chat/users/me/channels")
 
     def create(self, **kwargs):
+        """
+        :param name string
+        :param type 1,2,3
+        :param members [{"email": email}]
+        """
         return self.post_request("/chat/users/me/channels", data=kwargs)
 
     def update(self, **kwargs):

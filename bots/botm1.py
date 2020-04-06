@@ -58,7 +58,7 @@ class Bot:
 
     def get_valid_user_input_email(self):
         user_input = None
-        while user_input is None or not is_valid_email(user_input):
+        while user_input is None or not self.is_valid_email(user_input):
             user_input = input("Please input a email(ex. test@gmail.com): ")
         return user_input
 
@@ -189,48 +189,74 @@ class Bot:
 
         # 2
         input("# Part 2: Test creating a channel (Press Enter to continue)")
-        self.create_a_channel()
+        name = self.get_user_input("Please input a name for the channel: ")
+        res = self.client.chat_channels.create(name=name, type=1)
+        if not self.is_valid_response(res):
+            return
+        cid = res.json()["id"]
 
         # 3
         input("# Part 3: Test getting a channel (Press Enter to continue)")
-        self.get_a_channel()
-        self.list_channels()
+        self.get_a_channel(channel_id=cid)
 
         # 4
         input("# Part 4: Test updating a channel (Press Enter to continue)")
-        self.update_a_channel()
-        self.list_channels()
+        name = self.get_user_input("Please input a name for the channel: ")
+        res = self.client.chat_channels.update(channel_id=cid, name=name)
+        if not self.is_valid_response(res):
+            return
+        time.sleep(1)
+        self.get_a_channel(channel_id=cid)
 
         # 5
         input("# Part 5: Test listing members of a channel (Press Enter to continue)")
-        self.list_channel_members()
+        self.list_channel_members(cid)
 
         # 6
         input("# Part 6: Test inviting a member to a channel (Press Enter to continue)")
-        self.invite_channel_members()
-        self.list_channel_members()
+        self.list_external_contacts()
+        email = self.get_valid_user_input_email()
+        self.client.chat_channels.invite_members(
+            channel_id=cid, members=[{"email": email}]
+        )
+        time.sleep(1)
+        self.list_channel_members(cid)
 
         # 7
         input(
             "# Part 7: Test removing a member from a channel (Press Enter to continue)"
         )
-        self.remove_a_channel_member()
-        self.list_channel_members()
+        self.list_channel_members(cid)
+        time.sleep(1)
+        self.list_external_contacts()
+        mid = self.get_user_input("Please input a member id (not email): ")
+        self.client.chat_channels.remove_member(channel_id=cid, member_id=mid)
+        time.sleep(1)
+        self.list_channel_members(cid)
 
         # 8
         input("# Part 8: Test deleting a channel (Press Enter to continue)")
         self.list_channels()
-        self.delete_a_channel()
+        time.sleep(1)
+        print("Deleting", cid)
+        self.client.chat_channels.delete(channel_id=cid)
+        time.sleep(1)
         self.list_channels()
 
         # 9
-        input("# Part 9: Test joining a channel (Press Enter to continue)")
-        self.join_a_channel()
+        print("By default we are testing with our channel 'test-leave-join'.")
+        input("# Part 9: Test leaving a channel (Press Enter to continue)")
+        cid = "1cb910ea028d4dee9c960bb4e14e8fdc"
+        print("Leaving channel", cid)
+        self.client.chat_channels.leave(channel_id=cid)
+        time.sleep(1)
         self.list_channels()
 
         # 10
-        input("# Part 10: Test leaving a channel (Press Enter to continue)")
-        self.leave_a_channel()
+        input("# Part 10: Test joining a channel (Press Enter to continue)")
+        print("Joining channel", cid)
+        self.client.chat_channels.join(channel_id=cid)
+        time.sleep(1)
         self.list_channels()
 
     def execute_single_chat_channel_function(self):
@@ -447,6 +473,13 @@ class Bot:
         else:
             return
 
+    def get_a_channel(self, channel_id):
+        self.print_title("Get a channel")
+        response = self.client.chat_channels.get(channel_id=channel_id)
+        if self.is_valid_response(response):
+            self.print_channel_with_title("Succeed to get a channel", response.json())
+            print()
+
     def update_a_channel(self):
         self.print_title("Update a channel")
         channel_id = self.get_user_input(
@@ -494,6 +527,16 @@ class Bot:
             print()
         else:
             return
+
+    def list_channel_members(self, channel_id):
+        self.print_title("List channel members")
+        response = self.client.chat_channels.list_members(channel_id=channel_id)
+
+        if self.is_valid_response(response):
+            self.print_members_with_title(
+                "Succeed to list channel members", response.json()
+            )
+            print()
 
     def invite_channel_members(self):
         self.print_title("Invite channel members")
