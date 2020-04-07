@@ -42,9 +42,11 @@ class Bot:
         redirect_url = ngrok.connect(port, "http")
         return client_id, client_secret, port, browser_path, redirect_url
 
-    def __get_user_command(self):
+    def __get_user_command(self, placeholder):
+        if placeholder is None:
+            placeholder = "Please select a command(ex. 1): "
         try:
-            command = int(input("Please select a command(ex. 1): "))
+            command = int(input(placeholder))
             return command
         except ValueError:
             print("Invalid command, please enter a correct command!")
@@ -98,7 +100,12 @@ class Bot:
 
     def __is_valid_response(self, response):
         if response.status_code > 299:
-            print("Something goes wrong. Please retry.\n")
+            print("Something goes wrong. Please retry.")
+            msg = response.json()["message"]
+            if not msg:
+                print("Reason:", msg, "\n")
+            else:
+                print("Reason:", response.json(), "\n")
             return False
         return True
 
@@ -200,7 +207,7 @@ class Bot:
 
         # 3
         input("# Part 3: Test getting a channel (Press Enter to continue)")
-        self.__get_a_channel_by_id(channel_id=cid)
+        self.__get_a_channel(cid)
 
         # 4
         input("# Part 4: Test updating a channel (Press Enter to continue)")
@@ -209,11 +216,11 @@ class Bot:
         if not self.__is_valid_response(res):
             return
         time.sleep(1)
-        self.__get_a_channel_by_id(channel_id=cid)
+        self.__get_a_channel(cid)
 
         # 5
         input("# Part 5: Test listing members of a channel (Press Enter to continue)")
-        self.__list_channel_members_by_id(cid)
+        self.__list_channel_members(cid)
 
         # 6
         input("# Part 6: Test inviting a member to a channel (Press Enter to continue)")
@@ -223,19 +230,19 @@ class Bot:
             channel_id=cid, members=[{"email": email}]
         )
         time.sleep(1)
-        self.__list_channel_members_by_id(cid)
+        self.__list_channel_members(cid)
 
         # 7
         input(
             "# Part 7: Test removing a member from a channel (Press Enter to continue)"
         )
-        self.__list_channel_members_by_id(cid)
+        self.__list_channel_members(cid)
         time.sleep(1)
         self.__list_external_contacts()
         mid = self.__get_user_input("Please input a member id (not email): ")
         self.__client.chat_channels.remove_member(channel_id=cid, member_id=mid)
         time.sleep(1)
-        self.__list_channel_members_by_id(cid)
+        self.__list_channel_members(cid)
 
         # 8
         input("# Part 8: Test deleting a channel (Press Enter to continue)")
@@ -247,9 +254,11 @@ class Bot:
         self.__list_channels()
 
         # 9
-        print("By default we are testing with our channel 'test-leave-join'.")
+        # print("By default we are testing with our channel 'test-leave-join'.")
         input("# Part 9: Test leaving a channel (Press Enter to continue)")
-        cid = "1cb910ea028d4dee9c960bb4e14e8fdc"
+        # cid = "1cb910ea028d4dee9c960bb4e14e8fdc"
+        self.__list_channels()
+        cid = self.__get_user_input("Please input a valid channel ID from above: ")
         print("Leaving channel", cid)
         self.__client.chat_channels.leave(channel_id=cid)
         time.sleep(1)
@@ -267,7 +276,7 @@ class Bot:
 
         while command != 0:
             self.__print_chat_channel_menu()
-            command = self.__get_user_command()
+            command = self.__get_user_command(None)
             print("")
 
             if command == 1:
@@ -298,11 +307,7 @@ class Bot:
 
         # 0
         self.__list_channels()
-        try:
-            i = int(input("First, please select a channel:\n"))
-        except ValueError:
-            print(f"{i} is not a number.")
-            return
+        i = self.__get_user_command("First, please select a channel:\n")
         self.__channel = self.__channels[i % len(self.__channels)]
         print("You have selected channel", self.__channel["name"])
 
@@ -355,16 +360,27 @@ class Bot:
     def __execute_single_chat_message_function(self):
         while True:
             self.__list_channels()
-            try:
-                i = int(input("Please select a channel: "))
-            except ValueError:
-                break
+
+            str_range = "[0, " + str(len(self.__channels)) + ")"
+            while True:
+                try:
+                    i = int(input("Please select a channel: "))
+                except ValueError:
+                    print("Input should be a number. Range: " + str_range)
+                    continue
+                if 0 <= i and i < len(self.__channels):
+                    break
+                else:
+                    print("Input should be within " + str_range)
+
             self.__channel = self.__channels[i]
+            print(f"You have selected channel '{self.__channel['name']}'")
+
             if self.__channel["id"] != None:
                 command = -1
                 while command != 0:
                     self.__print_chat_message_menu()
-                    command = self.__get_user_command()
+                    command = self.__get_user_command(None)
                     if command == 1:
                         self.__list_channel_messages()
                     elif command == 2:
@@ -390,7 +406,7 @@ class Bot:
         try:
             test_channel_messages_content = json.loads(
                 self.__client.chat_messages.list(
-                    user_id=self.__user["id"], to_channel=self.__channel["id"]
+                    user_id=self.__user["id"], to_channel=self.__channel["id"],
                 ).content
             )
             print("# History of the channel", self.__channel["name"])
@@ -479,13 +495,6 @@ class Bot:
         else:
             return
 
-    def __get_a_channel_by_id(self, channel_id):
-        self.__print_title("Get a channel")
-        response = self.__client.chat_channels.get(channel_id=channel_id)
-        if self.__is_valid_response(response):
-            self.__print_channel_with_title("Succeed to get a channel", response.json())
-            print()
-
     def __update_a_channel(self):
         self.__print_title("Update a channel")
         channel_id = self.__get_user_input(
@@ -534,16 +543,6 @@ class Bot:
             print()
         else:
             return
-
-    def __list_channel_members_by_id(self, channel_id):
-        self.__print_title("List channel members")
-        response = self.__client.chat_channels.list_members(channel_id=channel_id)
-
-        if self.__is_valid_response(response):
-            self.__print_members_with_title(
-                "Succeed to list channel members", response.json()
-            )
-            print()
 
     def __invite_channel_members(self):
         self.__print_title("Invite channel members")
@@ -616,6 +615,7 @@ class Bot:
             return
 
     def __list_external_contacts(self):
+        time.sleep(1)
         res = self.__client.contacts.list_external()
         contacts = res.json()["contacts"]
         print("# User's external contacts")
@@ -634,7 +634,7 @@ class Bot:
 
         while command != 0:
             self.__print_main_menu()
-            command = self.__get_user_command()
+            command = self.__get_user_command(None)
             print("")
 
             if command == 1:
@@ -647,6 +647,7 @@ class Bot:
                 self.__execute_single_chat_message_function()
             else:
                 pass
+
 
 if __name__ == "__main__":
     Bot().run()
