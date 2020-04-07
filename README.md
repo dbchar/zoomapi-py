@@ -21,7 +21,9 @@ Note, as this library heavily depends on the [requests](https://pypi.org/project
 
 ### Run the bot (Milestone 1)
 
-First please nagivate to the root directory of the project, then run:
+First, please create a "bot.ini" file and set OAuth client ID and secret, port and browser path if possible.
+
+Then, nagivate to the root directory of the project, and run:
 
 ```bash
 python3 bots/botm1.py
