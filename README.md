@@ -4,12 +4,14 @@
 
 Python wrapper around the [Zoom.us](http://zoom.us) REST API v2.
 
-This work is based on [Zoomus](https://github.com/actmd/zoomus), but with OAuth support.
+This work is based on [crista/zoomapi](https://github.com/crista/zoomapi) and [Zoomus](https://github.com/actmd/zoomus).
 
 ## Basic Info
 
 - Group: Double Char
-- Member: Wen-Chia, Yang, Junxian, Chen
+- Members:
+  - Wen-Chia Yang
+  - Junxian Chen
 
 ## Compatibility
 
@@ -17,11 +19,28 @@ Note, as this library heavily depends on the [requests](https://pypi.org/project
 
 ## Example Usage
 
-### Run the bot
+### Run the bot (Milestone 1)
 
-```
+First please nagivate to the root directory of the project, then run:
+
+```bash
 python3 bots/botm1.py
 ```
+
+There are 4 options in the main menu which looks like this:
+
+```txt
+# Main Menu #
+[1] Execute a MEANINGFUL set of Chat Channel Functions
+[2] Execute a single Chat Channel Function (debug only)
+[3] Execute a MEANINGFUL set of Chat Message Functions
+[4] Execute a single Chat Message Function (debug only)
+[0] Quit
+```
+
+**We recommend using option 1 and 3 to test all the functions that we have implemented. Option 1 and option 4 are for debugging purpose only so please advance with caution.**
+
+After selecting option 1 or 3, please follow the instructions and the bot should work fine.
 
 ### Create the client
 
