@@ -23,7 +23,8 @@ class ChatMessagesComponentV2(base.BaseComponent):
         """
         require_keys(kwargs, "user_id")
         return self.get_request(
-            "/chat/users/{}/messages".format(kwargs.get("user_id")), params=kwargs
+            "/chat/users/{}/messages?page_size=50".format(kwargs.get("user_id")),
+            params=kwargs,
         )
 
     @Throttled

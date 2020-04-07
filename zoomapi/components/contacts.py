@@ -16,4 +16,4 @@ class ContactsComponentV2(base.BaseComponent):
 
     @Throttled
     def list_external(self):
-        return self.get_request("/chat/users/me/contacts", params={"type": "external"})
+        return self.list(type="external")
