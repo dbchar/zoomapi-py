@@ -1,10 +1,15 @@
-# zoomapi
+# zoomapi for SWE262P
 
-[https://github.com/crista/zoomapi](https://github.com/crista/zoomapi)
+[https://github.com/double-charburger/zoomapi](https://github.com/double-charburger/zoomapi)
 
 Python wrapper around the [Zoom.us](http://zoom.us) REST API v2.
 
 This work is based on [Zoomus](https://github.com/actmd/zoomus), but with OAuth support.
+
+## Basic Info
+
+- Group: Double Char
+- Member: Wen-Chia, Yang, Junxian, Chen
 
 ## Compatibility
 
@@ -12,7 +17,13 @@ Note, as this library heavily depends on the [requests](https://pypi.org/project
 
 ## Example Usage
 
-### Create the client 
+### Run the bot
+
+```
+python3 bots/botm1.py
+```
+
+### Create the client
 
 ```python
 import json
@@ -37,29 +48,61 @@ with JWTZoomClient('API_KEY', 'API_SECRET') as client:
 
 ## Available methods
 
-* client.user.create(...)
-* client.user.cust_create(...)
-* client.user.update(...)*
-* client.user.list(...)
-* client.user.pending(...)
-* client.user.get(...)
-* client.user.get_by_email(...)
+### Contacts
 
-* client.meeting.get(...)
-* client.meeting.end(...)
-* client.meeting.create(...)
-* client.meeting.delete(...)
-* client.meeting.list(...)
-* client.meeting.update(...)
+- client.contacts.list(...)
+- client.contacts.list_external(...)
 
-* client.report.get_account_report(...)
-* client.report.get_user_report(...)
+### Chat Channels
 
-* client.webinar.create(...)
-* client.webinar.update(...)
-* client.webinar.delete(...)
-* client.webinar.list(...)
-* client.webinar.get(...)
-* client.webinar.end(...)
-* client.webinar.register(...)
+- client.chat_channels.list(...)
+- client.chat_channels.create(...)
+- client.chat_channels.update(...)
+- client.chat_channels.delete(...)
+- client.chat_channels.get(...)
+- client.chat_channels.list_members(...)
+- client.chat_channels.invite_members(...)
+- client.chat_channels.join(...)
+- client.chat_channels.leave(...)
+- client.chat_channels.remove_member(...)
 
+### Chat Messages
+
+- client.chat_messages.list(...)
+- client.chat_messages.post(...)
+- client.chat_messages.update(...)
+- client.chat_messages.delete(...)
+
+### User
+
+- client.user.create(...)
+- client.user.cust_create(...)
+- client.user.update(...)\*
+- client.user.list(...)
+- client.user.pending(...)
+- client.user.get(...)
+- client.user.get_by_email(...)
+
+### Metting
+
+- client.meeting.get(...)
+- client.meeting.end(...)
+- client.meeting.create(...)
+- client.meeting.delete(...)
+- client.meeting.list(...)
+- client.meeting.update(...)
+
+### Report
+
+- client.report.get_account_report(...)
+- client.report.get_user_report(...)
+
+### Webinar
+
+- client.webinar.create(...)
+- client.webinar.update(...)
+- client.webinar.delete(...)
+- client.webinar.list(...)
+- client.webinar.get(...)
+- client.webinar.end(...)
+- client.webinar.register(...)

@@ -55,3 +55,6 @@ ENV/
 .project
 .pydevproject
 .settings/
+
+# Bot init
+bot.ini
