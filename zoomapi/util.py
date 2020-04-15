@@ -308,8 +308,8 @@ def get_oauth_token(cid, client_secret, port, redirect_url, browser_path):
     token = oauth.fetch_token(
         "https://zoom.us/oauth/token",
         code=TokenHandler.code,
-        client_secret=client_secret,
-    )
+        client_secret=client_secret,  # Why is this needed??
+    )  # https://marketplace.zoom.us/docs/guides/auth/oauth
     resp = dict(token)
     return resp["access_token"]
 
@@ -329,7 +329,7 @@ class Throttled:
         now = time.perf_counter()
         delta = now - Throttled.time
         if delta < Throttled.INTERVAL:
-            print(f'...Slowing down by {Throttled.INTERVAL - delta}...')
+            print(f"...Slowing down by {Throttled.INTERVAL - delta}...")
             time.sleep(Throttled.INTERVAL - delta)
         result = self.func(obj, *args, **kwargs)
         Throttled.time = time.perf_counter()

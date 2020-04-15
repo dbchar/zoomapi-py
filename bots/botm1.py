@@ -39,7 +39,9 @@ class Bot:
         client_secret = parser.get("OAuth", "client_secret")
         port = parser.getint("OAuth", "port", fallback=4001)
         browser_path = parser.get("OAuth", "browser_path")
-        redirect_url = ngrok.connect(port, "http")
+        redirect_url = "http://localhost:" + str(port)
+        # redirect_url = ngrok.connect(port, "http")
+        # http://12345678.ngrok.io <-> http://localhost:port
         return client_id, client_secret, port, browser_path, redirect_url
 
     def __get_user_command(self, placeholder):
