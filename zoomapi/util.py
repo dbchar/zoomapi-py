@@ -309,6 +309,9 @@ def get_oauth_token(cid, client_secret, port, redirect_url, browser_path):
         "https://zoom.us/oauth/token",
         code=TokenHandler.code,
         client_secret=client_secret,  # Why is this needed??
+        # ! So we are passing client_secret in query parameters
+        # ! UNSAFE. Should be put in header
+        # ! "Authorization": "Basic Q2xpZW50X0lEOkNsaWVudF9TZWNyZXQ="
     )  # https://marketplace.zoom.us/docs/guides/auth/oauth
     resp = dict(token)
     return resp["access_token"]
