@@ -360,39 +360,38 @@ class Bot:
         print("# Execution finished.")
 
     def __execute_single_chat_message_function(self):
+        self.__list_channels()
+
+        str_range = "[0, " + str(len(self.__channels)) + ")"
         while True:
-            self.__list_channels()
+            try:
+                i = int(input("Please select a channel: "))
+            except ValueError:
+                print("Input should be a number. Range: " + str_range)
+                continue
+            if 0 <= i and i < len(self.__channels):
+                break
+            else:
+                print("Input should be within " + str_range)
 
-            str_range = "[0, " + str(len(self.__channels)) + ")"
-            while True:
-                try:
-                    i = int(input("Please select a channel: "))
-                except ValueError:
-                    print("Input should be a number. Range: " + str_range)
-                    continue
-                if 0 <= i and i < len(self.__channels):
-                    break
+        self.__channel = self.__channels[i]
+        print(f"You have selected channel '{self.__channel['name']}'")
+
+        if self.__channel["id"] != None:
+            command = -1
+            while command != 0:
+                self.__print_chat_message_menu()
+                command = self.__get_user_command(None)
+                if command == 1:
+                    self.__list_channel_messages()
+                elif command == 2:
+                    self.__send_channel_messages()
+                elif command == 3:
+                    self.__update_a_channel_message()
+                elif command == 4:
+                    self.__delete_a_channel_message()
                 else:
-                    print("Input should be within " + str_range)
-
-            self.__channel = self.__channels[i]
-            print(f"You have selected channel '{self.__channel['name']}'")
-
-            if self.__channel["id"] != None:
-                command = -1
-                while command != 0:
-                    self.__print_chat_message_menu()
-                    command = self.__get_user_command(None)
-                    if command == 1:
-                        self.__list_channel_messages()
-                    elif command == 2:
-                        self.__send_channel_messages()
-                    elif command == 3:
-                        self.__update_a_channel_message()
-                    elif command == 4:
-                        self.__delete_a_channel_message()
-                    else:
-                        pass
+                    pass
 
     """User function"""
 
